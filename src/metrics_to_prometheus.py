@@ -2,84 +2,79 @@
 解析数据，将metrics 通过 pushgateway 推送到prometheus
 
 """
-from YCSB_collecter.src.resolve_log_file import YCSBResolver
-from prometheus_client import push_to_gateway, CollectorRegistry, Summary
+from ycsb_collecter.src.resolve_log_file import YCSBResolver
+from prometheus_client import push_to_gateway, CollectorRegistry, Summary, Gauge, pushadd_to_gateway, delete_from_gateway
 
 
 class MetricsResolver(object):
 
     @classmethod
-    def judge_workload_type(cls):
-        """
-        根据READ/UPDATE 等的count判断属于哪个workload类型
-
-        :return:
-        """
-        return 'workloada'
-
-    @classmethod
-    def generate_prometheus_metrics(cls, filename):
+    def generate_prometheus_metrics(cls, filename, workload_type, pushgateway_host):
         """
         以Summary方式生成metrics，通过pushgateway推送到prometheus
 
         :return:
         """
         ycsb_elements = YCSBResolver(filename).resolve_elements()
+        print('ycsb_elements', ycsb_elements)
         ycsb_results = YCSBResolver(filename).resolve_results()
-
+        print('ycsb_results', ycsb_results)
         # type = READ/UPDATE/INSERT
         types = list(ycsb_results.keys())
+        print('types', types)
         registry = CollectorRegistry()
 
         # 生成count metrics
-        ycsb_summary_request_count = Summary('ycsb_summary_request_count', 'YCSB request count',
-                                             ['workload', 'type', 'operation_count'], registry=registry)
-        ycsb_summary_request_count.labels('workloada', types[0], ycsb_elements['operationcount']). \
-            observe(ycsb_results[types[0]['Count']])
-        ycsb_summary_request_count.labels('workloada', types[1], ycsb_elements['operationcount']). \
-            observe(ycsb_results[types[1]['Count']])
+        ycsb_gauge_request_count = Gauge('ycsb_gauge_request_count', 'YCSB request count',
+                                             ['workload', 'type', 'operation_count', 'thread_count', 'count'], registry=registry)
+        ycsb_gauge_request_count.labels(workload_type, types[0], ycsb_elements['threadcount'], ycsb_elements['operationcount'], int(ycsb_results[types[0]]['Count'])). \
+            set(int(ycsb_results[types[0]]['Count']))
+        ycsb_gauge_request_count.labels(workload_type, types[1], ycsb_elements['threadcount'], ycsb_elements['operationcount'], int(ycsb_results[types[1]]['Count'])). \
+            set(int(ycsb_results[types[1]]['Count']))
 
         # 生成ops metrics
-        ycsb_summary_request_ops = Summary('ycsb_summary_request_ops', 'YCSB request ops',
-                                           ['workload', 'type', 'operation_count'], registry=registry)
-        ycsb_summary_request_ops.labels('workloada', types[0], ycsb_elements['operationcount']). \
-            observe(ycsb_results[types[0]['OPS']])
-        ycsb_summary_request_ops.labels('workloada', types[1], ycsb_elements['operationcount']). \
-            observe(ycsb_results[types[1]['OPS']])
+        ycsb_gauge_request_ops = Gauge('ycsb_gauge_request_ops', 'YCSB request ops',
+                                           ['workload', 'type', 'operation_count', 'thread_count', 'count'], registry=registry)
+        ycsb_gauge_request_ops.labels(workload_type, types[0], ycsb_elements['threadcount'], ycsb_elements['operationcount'], int(ycsb_results[types[0]]['Count'])). \
+            set(float(ycsb_results[types[0]]['OPS']))
+        ycsb_gauge_request_ops.labels(workload_type, types[1], ycsb_elements['threadcount'], ycsb_elements['operationcount'], int(ycsb_results[types[1]]['Count'])). \
+            set(float(ycsb_results[types[1]]['OPS']))
 
         # 生成 Avg(us) metrics
-        ycsb_summary_request_ops = Summary('ycsb_summary_request_latency_avg', 'YCSB request latency avg',
-                                           ['workload', 'type', 'operation_count'], registry=registry)
-        ycsb_summary_request_ops.labels('workloada', types[0], ycsb_elements['operationcount']). \
-            observe(ycsb_results[types[0]['Avg(us)']])
-        ycsb_summary_request_ops.labels('workloada', types[1], ycsb_elements['operationcount']). \
-            observe(ycsb_results[types[1]['Avg(us)']])
+        ycsb_gauge_request_latency_avg = Gauge('ycsb_gauge_request_latency_avg', 'YCSB request latency avg',
+                                           ['workload', 'type', 'operation_count', 'thread_count', 'count'], registry=registry)
+        ycsb_gauge_request_latency_avg.labels(workload_type, types[0], ycsb_elements['threadcount'], ycsb_elements['operationcount'], int(ycsb_results[types[0]]['Count'])). \
+            set(int(ycsb_results[types[0]]['Avg(us)']))
+        ycsb_gauge_request_latency_avg.labels(workload_type, types[1], ycsb_elements['threadcount'], ycsb_elements['operationcount'], int(ycsb_results[types[1]]['Count'])). \
+            set(int(ycsb_results[types[1]]['Avg(us)']))
 
         # 生成 99th(us)
-        ycsb_summary_request_ops = Summary('ycsb_summary_request_latency_avg_99th', 'YCSB request latency avg',
-                                           ['workload', 'type', 'operation_count'], registry=registry)
-        ycsb_summary_request_ops.labels('workloada', types[0], ycsb_elements['operationcount']). \
-            observe(ycsb_results[types[0]['99th(us)']])
-        ycsb_summary_request_ops.labels('workloada', types[1], ycsb_elements['operationcount']). \
-            observe(ycsb_results[types[1]['99th(us)']])
+        ycsb_gauge_request_latency_avg_99th = Gauge('ycsb_gauge_request_latency_avg_99th', 'YCSB request latency avg',
+                                           ['workload', 'type', 'operation_count', 'thread_count', 'count'], registry=registry)
+        ycsb_gauge_request_latency_avg_99th.labels(workload_type, types[0], ycsb_elements['threadcount'], ycsb_elements['operationcount'], int(ycsb_results[types[0]]['Count'])). \
+            set(int(ycsb_results[types[0]]['99th(us)']))
+        ycsb_gauge_request_latency_avg_99th.labels(workload_type, types[1], ycsb_elements['threadcount'], ycsb_elements['operationcount'], int(ycsb_results[types[1]]['Count'])). \
+            set(int(ycsb_results[types[1]]['99th(us)']))
 
         # 生成 99.9th(us)
-        ycsb_summary_request_ops = Summary('ycsb_summary_request_latency_avg_99.9th', 'YCSB request latency avg',
-                                           ['workload', 'type', 'operation_count'], registry=registry)
-        ycsb_summary_request_ops.labels('workloada', types[0], ycsb_elements['operationcount']). \
-            observe(ycsb_results[types[0]['99.9th(us)']])
-        ycsb_summary_request_ops.labels('workloada', types[1], ycsb_elements['operationcount']). \
-            observe(ycsb_results[types[1]['99.9th(us)']])
+        ycsb_gauge_request_latency_avg_999th = Gauge('ycsb_gauge_request_latency_avg_999th', 'YCSB request latency avg',
+                                           ['workload', 'type', 'operation_count', 'thread_count', 'count'], registry=registry)
+        ycsb_gauge_request_latency_avg_999th.labels(workload_type, types[0], ycsb_elements['threadcount'], ycsb_elements['operationcount'], int(ycsb_results[types[0]]['Count'])). \
+            set(int(ycsb_results[types[0]]['99.9th(us)']))
+        ycsb_gauge_request_latency_avg_999th.labels(workload_type, types[1], ycsb_elements['threadcount'], ycsb_elements['operationcount'], int(ycsb_results[types[1]]['Count'])). \
+            set(int(ycsb_results[types[1]]['99.9th(us)']))
 
         # 生成 99.99th(us)
-        ycsb_summary_request_ops = Summary('ycsb_summary_request_latency_avg_99.99th', 'YCSB request latency avg',
-                                           ['workload', 'type', 'operation_count'], registry=registry)
-        ycsb_summary_request_ops.labels('workloada', types[0], ycsb_elements['operationcount']). \
-            observe(ycsb_results[types[0]['99.99th']])
-        ycsb_summary_request_ops.labels('workloada', types[1], ycsb_elements['operationcount']). \
-            observe(ycsb_results[types[1]['99.99th']])
+        ycsb_gauge_request_latency_avg_9999th = Gauge('ycsb_gauge_request_latency_avg_9999th', 'YCSB request latency avg',
+                                           ['workload', 'type', 'operation_count', 'thread_count', 'count'], registry=registry)
+        ycsb_gauge_request_latency_avg_9999th.labels(workload_type, types[0], ycsb_elements['threadcount'], ycsb_elements['operationcount'], int(ycsb_results[types[0]]['Count'])). \
+            set(int(ycsb_results[types[0]]['99.99th(us)']))
+        ycsb_gauge_request_latency_avg_9999th.labels(workload_type, types[1], ycsb_elements['threadcount'], ycsb_elements['operationcount'], int(ycsb_results[types[1]]['Count'])). \
+            set(int(ycsb_results[types[1]]['99.99th(us)']))
 
         # push 到 gateway
-        push_to_gateway('127.0.0.1:2023', job='batchA', registry=registry)
-
-
+        push_to_gateway(pushgateway_host, job='ycsb-collecter', registry=registry,
+                        grouping_key={'job': 'ycsb-collecter', 'workload': workload_type, 'thread_count': ycsb_elements['threadcount'],
+                                      'operation_count': ycsb_elements['operationcount']})
+        # push_to_gateway('127.0.0.1:2023', job='ycsb-collecter', registry=registry)
+        # delete_from_gateway('127.0.0.1:2023', job='ycsb-collecter', grouping_key={'workload_type': workload_type, 'operationcount': ycsb_elements['operationcount']})

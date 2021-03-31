@@ -10,7 +10,7 @@ class MetricsResolver(object):
     @classmethod
     def generate_prometheus_metrics(cls, filename, workload_type, pushgateway_host):
         """
-        以Summary方式生成metrics，通过pushgateway推送到prometheus
+        以Gauge方式生成metrics，通过pushgateway推送到prometheus
 
         :return:
         """

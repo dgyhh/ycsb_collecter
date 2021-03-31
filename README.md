@@ -22,7 +22,7 @@ ycsb_collecter是用python实现的go-ycsb输出结果收集器，主要用于�
 
 2. 部署Prometheus, Pushgateway, Grafana
 
-可参照[prometheus官方文档](https://github.com/prometheus/prometheus)，[grafana官方文档](https://github.com/grafana/grafana)
+可参照[prometheus官方文档](https://github.com/prometheus/prometheus)，[grafana官方文档](https://github.com/grafana/grafana)  
 测试用的Prometheus是部署在Kubernetes集群，本地测试的时候可以用以下方式暴露pushgateway服务
 ```
 kubectl port-forward svc/prometheus-pushgateway 2021:9091 -n <namespace>

@@ -1,6 +1,5 @@
 import sys
-from schema import Schema, Optional, Use, And
-from ycsb_collecter.src.metrics_to_prometheus import MetricsResolver
+from src.metrics_to_prometheus import MetricsResolver
 
 
 def run(filepath, workload_type, pushgateway_host):

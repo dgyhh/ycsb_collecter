@@ -2,8 +2,8 @@
 解析数据，将metrics 通过 pushgateway 推送到prometheus
 
 """
-from ycsb_collecter.src.resolve_log_file import YCSBResolver
-from prometheus_client import push_to_gateway, CollectorRegistry, Summary, Gauge, pushadd_to_gateway, delete_from_gateway
+from src.resolve_log_file import YCSBResolver
+from prometheus_client import push_to_gateway, CollectorRegistry, Gauge
 
 
 class MetricsResolver(object):
@@ -72,9 +72,7 @@ class MetricsResolver(object):
         ycsb_gauge_request_latency_avg_9999th.labels(workload_type, types[1], ycsb_elements['threadcount'], ycsb_elements['operationcount'], int(ycsb_results[types[1]]['Count'])). \
             set(int(ycsb_results[types[1]]['99.99th(us)']))
 
-        # push 到 gateway
+        # push 到 gateway。需设置grouping_key，且grouping_key包含job
         push_to_gateway(pushgateway_host, job='ycsb-collecter', registry=registry,
                         grouping_key={'job': 'ycsb-collecter', 'workload': workload_type, 'thread_count': ycsb_elements['threadcount'],
                                       'operation_count': ycsb_elements['operationcount']})
-        # push_to_gateway('127.0.0.1:2023', job='ycsb-collecter', registry=registry)
-        # delete_from_gateway('127.0.0.1:2023', job='ycsb-collecter', grouping_key={'workload_type': workload_type, 'operationcount': ycsb_elements['operationcount']})

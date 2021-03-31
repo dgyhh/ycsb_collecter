@@ -61,6 +61,7 @@ python run.py workload_type=workloada filepath=<filepath>.log pushgateway_host=1
 ![avatar](./pictures/workloada-OPS-1000-thread.png)
 > workloada-OPS-1000-thread展示了，在其他条件一定的情况下，threadcount(1000/10000)对OPS的影响。可见在每种情况下，提升tread数量可以明显提高性能。其他同理。
 
+> ps: 只是展示了部分指标[破涕为笑]，其他指标还需要探索...
 ### 其他
 1. 通过pushgateway删除指定job的metrics
 ```

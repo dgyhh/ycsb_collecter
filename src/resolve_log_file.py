@@ -1,3 +1,6 @@
+"""
+解析go-ycsb的输出，标准化成dict格式
+"""
 import re
 
 

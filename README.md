@@ -1,5 +1,4 @@
 # ycsb_collecter
-collect go-ycsb output, export to prometheus
 
 ## go-ycsb说明
 go-ycsb是一个用go实现的性能测试框架[go-ycsb](https://github.com/pingcap/go-ycsb)，源自于[ycsb](https://github.com/brianfrankcooper/YCSB)
@@ -44,21 +43,18 @@ python run.py workload_type=workloada filepath=<filepath>.log pushgateway_host=1
 4. Grafana结果展示
 
 ![avatar](./pictures/OPS-workloada.png)
-上图OPS-workloada 展示了在负载不变的情况下(workloada)，operationcount=1000/10000对OPS的影响。
-可见，在operationcount比较小的时候，不会影响OPS。OPS-workloadb同理。
-OPS-1000展示了在operationcount=1000的时候，负载类型（workloada/workloadb）对OPS的影响。OPS-10000同理。
+> OPS-workloada 展示了在负载不变的情况下(workloada)，operationcount=1000/10000对OPS的影响。可见，在operationcount比较小的时候，不会影响OPS。OPS-workloadb同理。
+> OPS-1000展示了在operationcount=1000的情况下，负载类型（workloada/workloadb）对OPS的影响。OPS-10000同理。
 
 ![avatar](./pictures/workloada-99th.png)
-上图workloada-99th展示了在负载不变的情况下(workloada)，operationcount(1000/10000)对99分位的最大时延的影响。
-可见update的时延要高于read时延，且operationcount较小的时候，更容易波动。其他同理。
+> workloada-99th展示了在负载不变的情况下(workloada)，operationcount(1000/10000)对99分位的最大时延的影响。
+> 可见update的时延要高于read时延，且operationcount较小的时候，更容易波动。其他同理。
 
 ![avatar](./pictures/workload-99th-1000.png)
-上图workload-99th-1000 展示了在operationcount不变的时候（1000）, 负载类型(workloada/workloadb)对99分位最大时延的影响。其他同理。
-
+>workload-99th-1000 展示了在operationcount不变的情况下（1000）, 负载类型(workloada/workloadb)对99分位最大时延的影响。其他同理。
 
 ![avatar](./pictures/workloada-OPS-1000-thread.png)
-上图workloada-OPS-1000-thread展示了，在其他条件一定的情况下，threadcount(1000/10000)对OPS的影响。
-可见在每种情况下，提升tread数量可以明显提高性能。其他同理。
+> workloada-OPS-1000-thread展示了，在其他条件一定的情况下，threadcount(1000/10000)对OPS的影响。可见在每种情况下，提升tread数量可以明显提高性能。其他同理。
 
 ### 其他
 1. 通过pushgateway删除指定job的metrics

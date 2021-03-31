@@ -20,40 +20,56 @@ ycsb_collecter是用python实现的go-ycsb输出结果收集器，主要用于�
 # run
 ./bin/go-ycsb run mysql -P workloads/workloada -p mysql.host=127.0.0.1 -p mysql.port=3306 -p mysql.user=root -p mysql.db=<db_name> -p mysql.password=<passwd> -p recordcount=10000  -p operationcount=1000 -p threadcount=1 > <filepath>.log
 ```
-2. 执行ycsb_collecter
+
+2. 部署Prometheus, Pushgateway, Grafana
+
+可参照[prometheus官方文档](https://github.com/prometheus/prometheus)，[grafana官方文档](https://github.com/grafana/grafana)
+测试用的Prometheus是部署在Kubernetes集群，本地测试的时候可以用以下方式暴露pushgateway服务
+```
+kubectl port-forward svc/prometheus-pushgateway 2021:9091 -n <namespace>
+```
+
+3. 执行ycsb_collecter
 ```
 git clone https://github.com/dgyhh/ycsb_collecter.git
-python run.py workload_type=workloada filepath=<filepath>.log pushgateway_host=127.0.0.1:9091
+python run.py workload_type=workloada filepath=<filepath>.log pushgateway_host=127.0.0.1:2021
 ```
 
 | 参数|默认值|说明|
 |:----:|:----:|:---------:|
 |workload_type| workloada|可选|
 |filepath||必选，ycsb输出日志的路径|
-|pushgateway_host||必选，Pushgateway地址|
-
-3. 部署Prometheus和Pushgateway
-
-可参照[prometheus官方文档](https://github.com/prometheus/prometheus)
-测试用的Prometheus是部署在Kubernetes集群，本地测试的时候可以用以下方式暴露pushgateway服务
-```
-kubectl port-forward svc/prometheus-pushgateway 2021:9091 -n <namespace>
-```
+|pushgateway_host||必选，pushgateway地址|
 
 4. Grafana结果展示
 
-![avatar](./pictures/ycsb-ops.png)
-上图OPS-workloada 展示了workloada负载在operationcount=1000/10000时候，Read OPS和Update OPS的比较。OPS-workloadb同理。
+![avatar](./pictures/OPS-workloada.png)
+上图OPS-workloada 展示了在负载不变的情况下(workloada)，operationcount=1000/10000对OPS的影响。
+可见，在operationcount比较小的时候，不会影响OPS。OPS-workloadb同理。
 OPS-1000展示了在operationcount=1000的时候，负载类型（workloada/workloadb）对OPS的影响。OPS-10000同理。
 
-![avatar](./pictures/ycsb-99th.png)
-上图workloada-99th展示了workloada负载在operationcount=1000/10000时候，99分位的最大时延。可见update的时延要高于read时延，
-operationcount较小的时候，反而更容易不稳定。
-其他同理。
+![avatar](./pictures/workloada-99th.png)
+上图workloada-99th展示了在负载不变的情况下(workloada)，operationcount(1000/10000)对99分位的最大时延的影响。
+可见update的时延要高于read时延，且operationcount较小的时候，更容易波动。其他同理。
 
-![avatar](./pictures/ycsb-1000.png)
-上图workload-99th-1000 展示了在operationcount=1000的时候, 负载类型对99分位最大时延的影响。可见在样本数跟多的时候，99分为值越小，反而更稳定
+![avatar](./pictures/workload-99th-1000.png)
+上图workload-99th-1000 展示了在operationcount不变的时候（1000）, 负载类型(workloada/workloadb)对99分位最大时延的影响。其他同理。
 
 
-![avatar](./pictures/ycsb-ops-1000-thread.png)
-上图workloada-OPS-1000-tgread展示了，在其他条件一定的情况下，threadcount对OPS的影响。可见在每种情况下，提升tread数量可以明显提高性能。
+![avatar](./pictures/workloada-OPS-1000-thread.png)
+上图workloada-OPS-1000-thread展示了，在其他条件一定的情况下，threadcount(1000/10000)对OPS的影响。
+可见在每种情况下，提升tread数量可以明显提高性能。其他同理。
+
+### 其他
+1. 通过pushgateway删除指定job的metrics
+```
+# 假设，pushgateway grouping_key是 {'job': 'ycsb-collecter', 'workload': 'workloada', 'operation_count': 10000}删除他需要如下命令
+curl -X DELETE http://127.0.0.1:2023/metrics/job/ycsb-collecter/workload/workloada/operation_count/10000
+其中，127.0.0.1:2023为pushgateway 地址
+```
+
+2. pushgateway需要添加grouping_key，相同的job和grouping_key的数据会被覆盖，grouping_key可与label相同，例如：
+```
+push_to_gateway(pushgateway_host, job='ycsb-collecter', registry=registry,
+                grouping_key={'job': 'ycsb-collecter', 'workload': workload_type, 'thread_count': thread_count)
+```

@@ -1,10 +1,9 @@
 # ycsb_collecter (pingcap小作业)
 ## 题目如下
-```
-使用 go-ycsb（https://github.com/pingcap/go-ycsb）测试 mysql 数据库，其输出结果是以文本形式输出到 stdout 的，
-请实现一个监控采集器使 ycsb 结果能被 prometheus 采集到。
-选取你认为比较重要的几个指标即可
-```
+
+> 使用 go-ycsb（https://github.com/pingcap/go-ycsb）测试 mysql 数据库，其输出结果是以文本形式输出到 stdout 的，
+> 请实现一个监控采集器使 ycsb 结果能被 prometheus 采集到。选取你认为比较重要的几个指标即可
+
 
 ## go-ycsb说明
 go-ycsb是一个用go实现的性能测试框架[go-ycsb](https://github.com/pingcap/go-ycsb)，源自于[ycsb](https://github.com/brianfrankcooper/YCSB)
